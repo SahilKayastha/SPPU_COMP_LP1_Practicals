@@ -1,0 +1,35 @@
+//Write a program to simulate CPU scheduling algorithms: FCFS
+
+import java.util.Scanner;
+
+public class FCFS {
+    public static void main(String[] args) {
+        Scanner s = new Scanner(System.in);
+        System.out.println("Enter Number Of Processes You Want To Execute:");
+        int n = s.nextInt();
+
+        int[] arrival = new int[n], cpu = new int[n], finish = new int[n], turntt = new int[n], wait = new int[n];
+        float total_tt = 0, total_waiting = 0;
+
+        for (int i = 0, sum = 0; i < n; i++) {
+            System.out.println("Enter arrival time and CPU time of Process " + (i + 1) + ": ");
+            arrival[i] = s.nextInt();
+            cpu[i] = s.nextInt();
+            sum = (i == 0) ? arrival[i] + cpu[i] : sum + cpu[i];
+            finish[i] = sum;
+            turntt[i] = finish[i] - arrival[i];
+            wait[i] = turntt[i] - cpu[i];
+            total_tt += turntt[i];
+            total_waiting += wait[i];
+        }
+
+        System.out.println("\n\nProcess\t\tAT\tCPU_T\tFinish\tTurnaround\tWaiting");
+        for (int i = 0; i < n; i++) {
+            System.out.println((i + 1) + "\t\t" + arrival[i] + "\t" + cpu[i] + "\t" + finish[i] + "\t" + turntt[i] + "\t\t" + wait[i]);
+        }
+
+        System.out.println("\nAverage Turnaround Time: " + (total_tt / n));
+        System.out.println("Average Waiting Time: " + (total_waiting / n));
+        s.close();
+    }
+}
