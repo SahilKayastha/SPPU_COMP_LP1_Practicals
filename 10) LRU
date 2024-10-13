@@ -1,0 +1,105 @@
+// Write a program to simulate page replacement algorithms using Least Recently Used (LRU).
+
+import java.util.Scanner;
+
+class LRU {
+    int[] p, fr, fs;
+    int n, m, pf = 0, frsize = 3;
+    Scanner src = new Scanner(System.in);
+
+    // Read the page table and frame size
+    void read() {
+        
+        System.out.println("Please enter the number of Frames: ");
+        m = src.nextInt();
+        fr = new int[m];
+        fs = new int[m];
+
+        System.out.println("Please enter the length of the Reference string:");
+        n = src.nextInt();
+        p = new int[n];
+
+        System.out.println("Please enter the reference string: ");
+        for (int i = 0; i < n; i++) {
+            p[i] = src.nextInt();
+        }
+
+        // Initialize frame array with -1
+        for (int i = 0; i < m; i++) fr[i] = -1;
+    }
+
+    // Display current frame status
+    void display() {
+        System.out.println();
+        for (int i : fr) {
+            if (i == -1) System.out.print("[ ] ");
+            else System.out.print("[" + i + "] ");
+        }
+        System.out.println();
+    }
+
+    // Implement LRU algorithm
+    void lru() {
+        for (int j = 0; j < n; j++) {
+            boolean hit = false;
+
+            // Check if the page is already in the frame
+            for (int i = 0; i < m; i++) {
+                if (fr[i] == p[j]) {
+                    hit = true; // Page hit
+                    break;
+                }
+            }
+
+            // If no hit, check for empty frame or replace LRU page
+            if (!hit) {
+                int idx = -1;
+
+                // Check for an empty frame
+                for (int i = 0; i < m; i++) {
+                    if (fr[i] == -1) {
+                        idx = i; // Place page in empty frame
+                        break;
+                    }
+                }
+
+                // If no empty frame, replace the least recently used page
+                if (idx == -1) {
+                    for (int i = 0; i < m; i++) fs[i] = 0; // Reset frequency tracker
+
+                    // Track the usage of pages
+                    for (int k = j - 1, l = 1; l < frsize && k >= 0; l++, k--) {
+                        for (int i = 0; i < m; i++) {
+                            if (fr[i] == p[k]) fs[i] = 1; // Mark as recently used
+                        }
+                    }
+
+                    // Find least recently used page
+                    for (int i = 0; i < m; i++) {
+                        if (fs[i] == 0) {
+                            idx = i;
+                            break;
+                        }
+                    }
+                }
+
+                fr[idx] = p[j]; // Replace page
+                pf++; // Increment page fault count
+            }
+
+            // Display the current page
+            System.out.print("Page: " + p[j] + " ");
+            display();
+        }
+
+        // Display number of page faults
+        System.out.println("\nNumber of page faults: " + pf);
+    }
+
+    // Main method to execute the program
+    public static void main(String args[]) {
+        LRU lruAlgo = new LRU();
+        lruAlgo.read();
+        lruAlgo.lru();
+    }
+}
