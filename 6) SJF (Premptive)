@@ -1,1 +1,79 @@
+//Write a program to simulate CPU scheduling algorithms: SJF (Shortest Job First)
+
+import java.util.Scanner;
+
+public class SJF {
+    public static void main(String[] args) {
+        Scanner s = new Scanner(System.in);
+        System.out.println("Enter Number Of Processes You Want To Execute:");
+        int n = s.nextInt();
+
+        int[] arrival = new int[n], cpu = new int[n], remaining = new int[n], finish = new int[n];
+        int[] turntt = new int[n], wait = new int[n];
+        boolean[] isCompleted = new boolean[n];
+        float total_tt = 0, total_waiting = 0;
+
+        // Input arrival time and CPU burst time
+        for (int i = 0; i < n; i++) {
+            System.out.println("Enter arrival time and CPU time of Process " + (i + 1) + ": ");
+            arrival[i] = s.nextInt();
+            cpu[i] = s.nextInt();
+            remaining[i] = cpu[i];  // Remaining time is initially the burst time
+        }
+
+        int currentTime = 0, completed = 0, minIndex;
+        
+        while (completed < n) {
+            minIndex = -1;
+            int minTime = Integer.MAX_VALUE;
+            
+            // Find the process with the smallest remaining time that has arrived
+            for (int i = 0; i < n; i++) {
+                if (arrival[i] <= currentTime && !isCompleted[i] && remaining[i] < minTime && remaining[i] > 0) {
+                    minTime = remaining[i];
+                    minIndex = i;
+                }
+            }
+
+            // If no process is available, jump to the next process's arrival time
+            if (minIndex == -1) {
+                // Find the next process arrival time
+                int nextArrival = Integer.MAX_VALUE;
+                for (int i = 0; i < n; i++) {
+                    if (!isCompleted[i] && arrival[i] > currentTime) {
+                        nextArrival = Math.min(nextArrival, arrival[i]);
+                    }
+                }
+                // Move currentTime to the next process arrival time
+                currentTime = nextArrival;
+                continue;
+            }
+
+            // Process the selected process for 1 time unit
+            remaining[minIndex]--;
+            currentTime++;
+
+            // If the process is completed
+            if (remaining[minIndex] == 0) {
+                finish[minIndex] = currentTime;
+                turntt[minIndex] = finish[minIndex] - arrival[minIndex];  // Turnaround time
+                wait[minIndex] = turntt[minIndex] - cpu[minIndex];        // Waiting time
+                total_tt += turntt[minIndex];
+                total_waiting += wait[minIndex];
+                isCompleted[minIndex] = true;
+                completed++;
+            }
+        }
+
+        // Display the results
+        System.out.println("\n\nProcess\t\tAT\tCPU_T\tFinish\tTurnaround\tWaiting");
+        for (int i = 0; i < n; i++) {
+            System.out.println((i + 1) + "\t\t" + arrival[i] + "\t" + cpu[i] + "\t" + finish[i] + "\t" + turntt[i] + "\t\t" + wait[i]);
+        }
+
+        System.out.println("\nAverage Turnaround Time: " + (total_tt / n));
+        System.out.println("Average Waiting Time: " + (total_waiting / n));
+        s.close();
+    }
+}
 
