@@ -1,0 +1,93 @@
+//Design suitable data structures and implement pass-I of a two-pass assembler for Pseudo-machine in Java using object-oriented feature. Implementation should consist of a few instructions from each category and few assembler directives.
+
+import java.io.*;
+import java.util.*;
+
+public class Pass1 {
+    static int address = 0;
+    static int[] sadd = new int[10], ladd = new int[10]; // Symbol and Literal address arrays
+
+    public static void main(String[] args) {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader("initial.txt"));
+            PrintWriter p = new PrintWriter("IM.txt"), p1 = new PrintWriter("ST.txt"), p2 = new PrintWriter("LT.txt");
+
+            String[] IS = {"ADD", "SUB", "MUL", "MOV"}, UserReg = {"AREG", "BREG", "CREG", "DREG"},
+                     AD = {"START", "END"}, DL = {"DC", "DS"};
+            String[] sv = new String[10], lv = new String[10]; // Symbol and Literal tables
+            int scount = 0, lcount = 0, k = 0;
+
+            String input;
+            while ((input = br.readLine()) != null) {
+                StringTokenizer st = new StringTokenizer(input, " ");
+                String tt;
+                while (st.hasMoreTokens()) {
+                    tt = st.nextToken();
+
+                    // Location Counter (LC) initialization with "START"
+                    if (tt.matches("\\d+") && tt.length() > 2) {
+                        address = Integer.parseInt(tt) - 1;
+                        p.println("AD 1 " + (address + 1)); // AD 1 for START
+                    }
+
+                    // Assembler Directives (AD)
+                    else if (Arrays.asList(AD).contains(tt)) {
+                        if (tt.equals("END")) p.println("AD 2 "); // AD 2 for END
+                    }
+
+                    // Instruction Set (IS)
+                    else if (Arrays.asList(IS).contains(tt)) {
+                        p.print("IS " + (Arrays.asList(IS).indexOf(tt) + 1) + " ");
+                    }
+
+                    // Registers (UserReg)
+                    else if (Arrays.asList(UserReg).contains(tt)) {
+                        p.print((Arrays.asList(UserReg).indexOf(tt) + 1) + " ");
+                    }
+
+                    // Declarative Statements (DL)
+                    else if (Arrays.asList(DL).contains(tt)) {
+                        p.print("DL " + (Arrays.asList(DL).indexOf(tt) + 1) + " ");
+                        if (tt.equals("DS")) address += Integer.parseInt(st.nextToken()) - 1;
+                    }
+
+                    // Handle Symbols (A, B)
+                    else if (tt.length() == 1 && !st.hasMoreTokens()) {
+                        int idx = Arrays.asList(sv).indexOf(tt);
+                        if (idx == -1) sv[scount] = tt; // New symbol
+                        p.print("S" + (idx == -1 ? scount++ : idx));
+                    }
+
+                    // Handle Labels
+                    else if (tt.length() == 1 && st.hasMoreTokens()) sadd[k++] = address;
+
+                    // Handle Literals (e.g. =2, =3)
+                    else if (tt.startsWith("=")) {
+                        p.print("L" + lcount + " ");
+                        lv[lcount++] = tt;
+                    }
+
+                    p.println();
+                }
+                address++;
+            }
+            br.close();
+            p.close();
+
+            // Assign addresses to literals and write to LT.txt
+            for (int i = 0; i < lcount; i++) {
+                ladd[i] = address;
+                p2.println(i + "\t" + lv[i] + "\t" + address++);
+            }
+
+            // Write Symbol Table to ST.txt
+            for (int i = 0; i < scount; i++) p1.println(i + "\t" + sv[i] + "\t" + sadd[i]);
+
+            p1.close();
+            p2.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
