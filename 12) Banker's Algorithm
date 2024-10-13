@@ -1,1 +1,105 @@
+//Write a program to simulate Bankers Algorithm (Deadlock Avoidance Algorithm).
 
+import java.util.Scanner;
+
+public class BankersAlgorithm {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        // Input number of processes and resources
+        System.out.println("Enter number of processes:");
+        int n = sc.nextInt();
+        System.out.println("Enter number of resource types:");
+        int m = sc.nextInt();
+
+        int[][] max = new int[n][m], allocation = new int[n][m], need = new int[n][m];
+        int[] available = new int[m];
+
+        // Input Allocation matrix
+        System.out.println("Enter Allocation Matrix:");
+        for (int i = 0; i < n; i++) 
+            for (int j = 0; j < m; j++) allocation[i][j] = sc.nextInt();
+
+        // Input Max matrix and calculate Need matrix
+        System.out.println("Enter Max Matrix:");
+        for (int i = 0; i < n; i++) 
+            for (int j = 0; j < m; j++) {
+                max[i][j] = sc.nextInt();
+                need[i][j] = max[i][j] - allocation[i][j];
+            }
+
+        // Input Available resources
+        System.out.println("Enter Available Resources:");
+        for (int j = 0; j < m; j++) available[j] = sc.nextInt();
+
+        // Display process details
+        System.out.println("\nProcess\tAlloc\tMax\tNeed");
+        for (int i = 0; i < n; i++) {
+            System.out.print("P" + (i + 1) + "\t");
+            for (int j = 0; j < m; j++) System.out.print(allocation[i][j] + " ");
+            System.out.print("\t");
+            for (int j = 0; j < m; j++) System.out.print(max[i][j] + " ");
+            System.out.print("\t");
+            for (int j = 0; j < m; j++) System.out.print(need[i][j] + " ");
+            System.out.println();
+        }
+
+        // Check and display safe state
+        if (isSafe(n, m, allocation, need, available)) 
+            System.out.println("\nSystem is in a safe state.");
+        else 
+            System.out.println("\nSystem is NOT in a safe state.");
+
+        sc.close();
+    }
+
+    // Check if system is in a safe state
+    private static boolean isSafe(int n, int m, int[][] allocation, int[][] need, int[] available) {
+        boolean[] finished = new boolean[n];
+        int[] work = available.clone();
+        int count = 0;
+
+        while (count < n) {
+            boolean found = false;
+            for (int i = 0; i < n; i++) {
+                if (!finished[i] && canProceed(need[i], work, m)) {
+                    for (int j = 0; j < m; j++) work[j] += allocation[i][j];
+                    finished[i] = true;
+                    System.out.print("P" + (i + 1) + " ");
+                    count++;
+                    found = true;
+                }
+            }
+            if (!found) return false;
+        }
+        return true;
+    }
+
+    // Helper function to check if resources can be allocated
+    private static boolean canProceed(int[] need, int[] work, int m) {
+        for (int j = 0; j < m; j++)
+            if (need[j] > work[j]) return false;
+        return true;
+    }
+}
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+//HOW TO GIVE INPUT:
+Enter the number of processes: Type a number (e.g., 5), then press Enter.
+
+Enter the number of resource types: Type a number (e.g., 3), then press Enter.
+
+Enter the Allocation Matrix: For each process, input the resource allocations as space-separated numbers, then press Enter.
+
+Example for Process 1 (with 3 resources):
+1 0 2
+Example for Process 2 (next line):
+2 1 0
+
+Enter the Max Matrix: For each process, input the maximum resource requirements in the same way, as space-separated numbers, then press Enter.
+Example for Process 1:
+3 2 2
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
