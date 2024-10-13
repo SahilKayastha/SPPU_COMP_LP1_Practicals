@@ -1,0 +1,100 @@
+//Write a program to simulate page replacement algorithms using optimal algorithm
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class Optimal {
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        
+        System.out.println("Please enter the number of Frames: ");
+        int frames = Integer.parseInt(br.readLine());
+
+        System.out.println("Please enter the length of the Reference string: ");
+        int ref_len = Integer.parseInt(br.readLine());
+
+        int[] reference = new int[ref_len];
+        int[] buffer = new int[frames];
+        int[][] mem_layout = new int[ref_len][frames];
+        
+        System.out.println("Please enter the reference string: ");
+        for (int i = 0; i < ref_len; i++) {
+            reference[i] = Integer.parseInt(br.readLine());
+        }
+
+        // Initialize buffer
+        for (int i = 0; i < frames; i++) buffer[i] = -1;
+
+        int hit = 0, fault = 0, pointer = 0;
+        boolean isFull = false;
+
+        for (int i = 0; i < ref_len; i++) {
+            boolean found = false;
+
+            // Check if page is in buffer
+            for (int j = 0; j < frames; j++) {
+                if (buffer[j] == reference[i]) {
+                    hit++;
+                    found = true;
+                    break;
+                }
+            }
+
+            // If not found, handle page replacement
+            if (!found) {
+                if (isFull) {
+                    int[] nextUse = new int[frames];
+                    for (int j = 0; j < frames; j++) nextUse[j] = Integer.MAX_VALUE;
+
+                    // Find future occurrences
+                    for (int j = i + 1; j < ref_len; j++) {
+                        for (int k = 0; k < frames; k++) {
+                            if (buffer[k] == reference[j] && nextUse[k] == Integer.MAX_VALUE) {
+                                nextUse[k] = j;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Find the frame with the farthest next use or no future use
+                    int farthest = 0;
+                    for (int j = 1; j < frames; j++) {
+                        if (nextUse[j] > nextUse[farthest]) farthest = j;
+                    }
+                    pointer = farthest;
+                }
+
+                // Replace the page
+                buffer[pointer] = reference[i];
+                fault++;
+
+                // Manage pointer and fullness
+                if (!isFull) {
+                    pointer++;
+                    if (pointer == frames) {
+                        pointer = 0;
+                        isFull = true;
+                    }
+                }
+            }
+
+            // Update memory layout
+            System.arraycopy(buffer, 0, mem_layout[i], 0, frames);
+        }
+
+        // Display memory layout
+        System.out.println("\nThe Memory Layout is:");
+        for (int[] row : mem_layout) {
+            for (int frame : row) {
+                System.out.printf("%3d ", frame);
+            }
+            System.out.println();
+        }
+
+        // Output hits, hit ratio, and faults
+        System.out.println("The number of Hits: " + hit);
+        System.out.println("Hit Ratio: " + (float) hit / ref_len);
+        System.out.println("The number of Faults: " + fault);
+    }
+}
