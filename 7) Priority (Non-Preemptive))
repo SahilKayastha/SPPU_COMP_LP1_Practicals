@@ -1,0 +1,66 @@
+//Write a program to simulate CPU scheduling algorithms Priority (Non-Preemptive) 
+
+import java.util.Scanner;
+
+public class priority {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        
+        // Input number of processes
+        System.out.println("Enter Number Of Processes:");
+        int n = scanner.nextInt();
+        
+        int[] arrival = new int[n], cpu = new int[n], priority = new int[n];
+        int[] finish = new int[n], turnaroundTime = new int[n], waitingTime = new int[n], process = new int[n];
+        float totalTurnaroundTime = 0, totalWaitingTime = 0;
+
+        // Input process details
+        for (int i = 0; i < n; i++) {
+            System.out.println("Enter arrival time, CPU time, and priority of Process " + (i + 1) + ": ");
+            arrival[i] = scanner.nextInt();
+            cpu[i] = scanner.nextInt();
+            priority[i] = scanner.nextInt();
+            process[i] = i + 1;  // Process ID
+        }
+
+        // Sort processes by priority (lower value = higher priority)
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (priority[i] > priority[j]) {
+                    swap(i, j, cpu, priority, arrival, process);
+                }
+            }
+        }
+
+        // Calculate finish, turnaround, and waiting times
+        for (int i = 0, sum = 0; i < n; i++) {
+            sum += cpu[i];
+            finish[i] = sum;
+            turnaroundTime[i] = finish[i] - arrival[i];
+            waitingTime[i] = turnaroundTime[i] - cpu[i];
+            totalTurnaroundTime += turnaroundTime[i];
+            totalWaitingTime += waitingTime[i];
+        }
+
+        // Display process information
+        System.out.println("\nProcess\tAT\tCPU\tPriority");
+        for (int i = 0; i < n; i++) {
+            System.out.println(process[i] + "\t" + arrival[i] + "\t" + cpu[i] + "\t" + priority[i]);
+        }
+
+        // Display average times
+        System.out.printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime / n);
+        System.out.printf("Average Waiting Time: %.2f\n", totalWaitingTime / n);
+        
+        scanner.close();
+    }
+
+    // Helper method to swap elements between two indices in multiple arrays
+    private static void swap(int i, int j, int[]... arrays) {
+        for (int[] array : arrays) {
+            int temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+    }
+}
