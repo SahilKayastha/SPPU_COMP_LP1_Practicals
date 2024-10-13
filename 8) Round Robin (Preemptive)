@@ -1,0 +1,75 @@
+// Write a program to simulate CPU scheduling algorithms: RoundRobin (Preemptive) 
+
+import java.util.Scanner;
+
+public class RoundRobin {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        // Input the number of processes and time quantum
+        System.out.println("Enter Number Of Processes:");
+        int n = scanner.nextInt();
+        int[] arrival = new int[n], cpu = new int[n], remainingCpu = new int[n];
+        int[] completionTime = new int[n], turnaroundTime = new int[n], waitingTime = new int[n];
+        int totalCpuTime = 0, currentTime = 0, timeQuantum, totalTurnaroundTime = 0, totalWaitingTime = 0;
+        boolean[] isCompleted = new boolean[n]; // To keep track of completed processes
+
+        // Input arrival times and CPU burst times
+        for (int i = 0; i < n; i++) {
+            System.out.println("Enter arrival time and CPU time of Process " + (i + 1) + ":");
+            arrival[i] = scanner.nextInt();
+            cpu[i] = scanner.nextInt();
+            remainingCpu[i] = cpu[i];
+            totalCpuTime += cpu[i];
+        }
+
+        // Input the time quantum
+        System.out.println("Enter Time Quantum:");
+        timeQuantum = scanner.nextInt();
+
+        System.out.println("Process execution sequence:");
+        
+        // Round Robin scheduling with arrival time consideration
+        while (totalCpuTime > 0) {
+            boolean isIdle = true;
+            for (int i = 0; i < n; i++) {
+                if (remainingCpu[i] > 0 && arrival[i] <= currentTime) {
+                    isIdle = false; // There's at least one process ready to execute
+                    int execTime = Math.min(remainingCpu[i], timeQuantum);
+                    currentTime += execTime;
+                    remainingCpu[i] -= execTime;
+                    totalCpuTime -= execTime;
+                    System.out.print((i + 1) + " ");
+                    
+                    // Process completed
+                    if (remainingCpu[i] == 0) {
+                        completionTime[i] = currentTime;
+                        turnaroundTime[i] = completionTime[i] - arrival[i];
+                        waitingTime[i] = turnaroundTime[i] - cpu[i];
+                        totalTurnaroundTime += turnaroundTime[i];
+                        totalWaitingTime += waitingTime[i];
+                        isCompleted[i] = true;
+                    }
+                }
+            }
+            if (isIdle) {
+                // If no process is ready, increment time to the next available process
+                currentTime++;
+            }
+        }
+        System.out.println();
+
+        // Display process details: AT, BT, CT, TAT, WT
+        System.out.println("\nProcess\tAT\tBT\tCT\tTAT\tWT");
+        for (int i = 0; i < n; i++) {
+            System.out.println((i + 1) + "\t" + arrival[i] + "\t" + cpu[i] + "\t" + 
+                               completionTime[i] + "\t" + turnaroundTime[i] + "\t" + waitingTime[i]);
+        }
+
+        // Display average TAT and WT
+        System.out.printf("\nAverage Turnaround Time: %.2f\n", (float) totalTurnaroundTime / n);
+        System.out.printf("Average Waiting Time: %.2f\n", (float) totalWaitingTime / n);
+
+        scanner.close(); // Close the scanner resource
+    }
+}
