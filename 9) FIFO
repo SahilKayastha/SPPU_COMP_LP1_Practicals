@@ -1,0 +1,64 @@
+//Write a program to simulate page replacement algorithms using FIFO
+
+import java.io.*;
+
+public class FIFO {
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        
+        System.out.println("Please enter the number of Frames: ");
+        int frames = Integer.parseInt(br.readLine());
+
+        System.out.println("Please enter the length of the Reference string: ");
+        int ref_len = Integer.parseInt(br.readLine());
+
+        int[] buffer = new int[frames];
+        int[] reference = new int[ref_len];
+        int[][] mem_layout = new int[ref_len][frames];
+
+        System.out.println("Please enter the reference string: ");
+        for (int i = 0; i < ref_len; i++) {
+            reference[i] = Integer.parseInt(br.readLine());
+        }
+
+        int pointer = 0, hit = 0, fault = 0;
+        for (int i = 0; i < frames; i++) buffer[i] = -1;  // Initialize buffer to -1
+
+        for (int i = 0; i < ref_len; i++) {
+            boolean isHit = false;
+
+            // Check for a hit
+            for (int j = 0; j < frames; j++) {
+                if (buffer[j] == reference[i]) {
+                    isHit = true;
+                    hit++;
+                    break;
+                }
+            }
+
+            // If no hit, replace the oldest page (FIFO)
+            if (!isHit) {
+                buffer[pointer] = reference[i];
+                fault++;
+                pointer = (pointer + 1) % frames;  // Circular increment
+            }
+
+            // Record the buffer state for memory layout
+            System.arraycopy(buffer, 0, mem_layout[i], 0, frames);
+        }
+
+        // Display memory layout
+        System.out.println("\nThe Memory Layout is:");
+        for (int[] row : mem_layout) {
+            for (int frame : row) {
+                System.out.printf("%3d ", frame);
+            }
+            System.out.println();
+        }
+
+        // Output hit, hit ratio, and faults
+        System.out.println("The number of Hits: " + hit);
+        System.out.println("Hit Ratio: " + (float) hit / ref_len);
+        System.out.println("The number of Faults: " + fault);
+    }
+}
