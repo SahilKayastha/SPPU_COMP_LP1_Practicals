@@ -9,9 +9,10 @@ public class Pass1 {
 
     public static void main(String[] args) {
         try {
-            BufferedReader br = new BufferedReader(new FileReader("initial.txt"));
+            BufferedReader br = new BufferedReader(new FileReader("input1.txt"));
             PrintWriter p = new PrintWriter("IM.txt"), p1 = new PrintWriter("ST.txt"), p2 = new PrintWriter("LT.txt");
 
+            // Define Instruction Sets, Registers, Directives, and Declarative statements
             String[] IS = {"ADD", "SUB", "MUL", "MOV"}, UserReg = {"AREG", "BREG", "CREG", "DREG"},
                      AD = {"START", "END"}, DL = {"DC", "DS"};
             String[] sv = new String[10], lv = new String[10]; // Symbol and Literal tables
@@ -21,6 +22,8 @@ public class Pass1 {
             while ((input = br.readLine()) != null) {
                 StringTokenizer st = new StringTokenizer(input, " ");
                 String tt;
+                boolean lineStarted = false; // Flag to ensure line ends properly
+
                 while (st.hasMoreTokens()) {
                     tt = st.nextToken();
 
@@ -32,12 +35,18 @@ public class Pass1 {
 
                     // Assembler Directives (AD)
                     else if (Arrays.asList(AD).contains(tt)) {
-                        if (tt.equals("END")) p.println("AD 2 "); // AD 2 for END
+                        if (tt.equals("END")) {
+                            p.println("AD 2"); // AD 2 for END
+                        }
                     }
 
                     // Instruction Set (IS)
                     else if (Arrays.asList(IS).contains(tt)) {
+                        if (lineStarted) {
+                            p.println(); // Ensure previous line ends before starting a new instruction
+                        }
                         p.print("IS " + (Arrays.asList(IS).indexOf(tt) + 1) + " ");
+                        lineStarted = true;
                     }
 
                     // Registers (UserReg)
@@ -47,29 +56,42 @@ public class Pass1 {
 
                     // Declarative Statements (DL)
                     else if (Arrays.asList(DL).contains(tt)) {
+                        if (lineStarted) {
+                            p.println(); // Ensure previous line ends before starting a new declaration
+                        }
                         p.print("DL " + (Arrays.asList(DL).indexOf(tt) + 1) + " ");
                         if (tt.equals("DS")) address += Integer.parseInt(st.nextToken()) - 1;
+                        lineStarted = true;
                     }
 
-                    // Handle Symbols (A, B)
+                    // Handle Symbols (e.g., S0, S1)
                     else if (tt.length() == 1 && !st.hasMoreTokens()) {
                         int idx = Arrays.asList(sv).indexOf(tt);
-                        if (idx == -1) sv[scount] = tt; // New symbol
-                        p.print("S" + (idx == -1 ? scount++ : idx));
+                        if (idx == -1) {
+                            sv[scount] = tt;  // Add new symbol
+                            idx = scount++;
+                        }
+                        p.print("S" + idx + " ");
                     }
 
-                    // Handle Labels
-                    else if (tt.length() == 1 && st.hasMoreTokens()) sadd[k++] = address;
+                    // Handle Labels (for address tracking)
+                    else if (tt.length() == 1 && st.hasMoreTokens()) {
+                        sadd[k++] = address;
+                    }
 
-                    // Handle Literals (e.g. =2, =3)
+                    // Handle Literals (e.g., =2, =3)
                     else if (tt.startsWith("=")) {
                         p.print("L" + lcount + " ");
-                        lv[lcount++] = tt;
+                        lv[lcount++] = tt;  // Add literal
                     }
+                }
 
+                // End the current line if it was started
+                if (lineStarted) {
                     p.println();
                 }
-                address++;
+
+                address++; // Increment the address counter after each instruction
             }
             br.close();
             p.close();
@@ -81,7 +103,9 @@ public class Pass1 {
             }
 
             // Write Symbol Table to ST.txt
-            for (int i = 0; i < scount; i++) p1.println(i + "\t" + sv[i] + "\t" + sadd[i]);
+            for (int i = 0; i < scount; i++) {
+                p1.println(i + "\t" + sv[i] + "\t" + sadd[i]);
+            }
 
             p1.close();
             p2.close();
@@ -91,3 +115,17 @@ public class Pass1 {
         }
     }
 }
+
+/*
+input1.txt
+START 100
+MOV AREG A
+MOV BREG B
+MOV CREG =2
+MOV DREG =3
+ADD AREG BREG
+SUB AREG A
+A DC 05
+B DS 03
+END
+*/
