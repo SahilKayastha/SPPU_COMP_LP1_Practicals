@@ -3,103 +3,114 @@
 import java.util.Scanner;
 
 class LRU {
-    int[] p, fr, fs;
-    int n, m, pf = 0, frsize = 3;
-    Scanner src = new Scanner(System.in);
+    int[] pages, frames, recent;
+    int numPages, numFrames, pageFaults = 0;
+    Scanner scanner = new Scanner(System.in);
 
     // Read the page table and frame size
-    void read() {
-        
-        System.out.println("Please enter the number of Frames: ");
-        m = src.nextInt();
-        fr = new int[m];
-        fs = new int[m];
+    void readInput() {
+        System.out.print("Please enter the number of Frames: ");
+        numFrames = scanner.nextInt();
+        frames = new int[numFrames];  // Frame storage
+        recent = new int[numFrames];  // Track recently used frames
 
-        System.out.println("Please enter the length of the Reference string:");
-        n = src.nextInt();
-        p = new int[n];
+        System.out.print("Please enter the length of the Reference string: ");
+        numPages = scanner.nextInt();
+        pages = new int[numPages];    // Page reference sequence
 
         System.out.println("Please enter the reference string: ");
-        for (int i = 0; i < n; i++) {
-            p[i] = src.nextInt();
+        for (int i = 0; i < numPages; i++) {
+            pages[i] = scanner.nextInt();
         }
 
-        // Initialize frame array with -1
-        for (int i = 0; i < m; i++) fr[i] = -1;
+        // Initialize frames to -1 (empty)
+        for (int i = 0; i < numFrames; i++) {
+            frames[i] = -1;
+        }
     }
 
-    // Display current frame status
-    void display() {
-        System.out.println();
-        for (int i : fr) {
-            if (i == -1) System.out.print("[ ] ");
-            else System.out.print("[" + i + "] ");
+    // Display the current frame status
+    void displayFrames() {
+        for (int frame : frames) {
+            if (frame == -1) {
+                System.out.print("[ ] ");
+            } else {
+                System.out.print("[" + frame + "] ");
+            }
         }
         System.out.println();
     }
 
     // Implement LRU algorithm
-    void lru() {
-        for (int j = 0; j < n; j++) {
+    void applyLRU() {
+        for (int currentPageIndex = 0; currentPageIndex < numPages; currentPageIndex++) {
+            int currentPage = pages[currentPageIndex];
             boolean hit = false;
 
-            // Check if the page is already in the frame
-            for (int i = 0; i < m; i++) {
-                if (fr[i] == p[j]) {
-                    hit = true; // Page hit
+            // Check if the page is already in a frame
+            for (int i = 0; i < numFrames; i++) {
+                if (frames[i] == currentPage) {
+                    hit = true; // Page is already loaded, so it's a "hit"
                     break;
                 }
             }
 
-            // If no hit, check for empty frame or replace LRU page
+            // If no hit, we have a "page fault" and must replace a page
             if (!hit) {
-                int idx = -1;
+                int replaceIndex = -1;
 
-                // Check for an empty frame
-                for (int i = 0; i < m; i++) {
-                    if (fr[i] == -1) {
-                        idx = i; // Place page in empty frame
+                // Check for an empty frame first
+                for (int i = 0; i < numFrames; i++) {
+                    if (frames[i] == -1) {
+                        replaceIndex = i; // Place page in the empty frame
                         break;
                     }
                 }
 
                 // If no empty frame, replace the least recently used page
-                if (idx == -1) {
-                    for (int i = 0; i < m; i++) fs[i] = 0; // Reset frequency tracker
+                if (replaceIndex == -1) {
+                    // Initialize recent usage array for tracking
+                    for (int i = 0; i < numFrames; i++) {
+                        recent[i] = 0;
+                    }
 
-                    // Track the usage of pages
-                    for (int k = j - 1, l = 1; l < frsize && k >= 0; l++, k--) {
-                        for (int i = 0; i < m; i++) {
-                            if (fr[i] == p[k]) fs[i] = 1; // Mark as recently used
+                    // Mark pages in frames that were used recently
+                    for (int back = currentPageIndex - 1, used = 1; used < numFrames && back >= 0; used++, back--) {
+                        for (int i = 0; i < numFrames; i++) {
+                            if (frames[i] == pages[back]) {
+                                recent[i] = 1; // Recently used page
+                                break;
+                            }
                         }
                     }
 
-                    // Find least recently used page
-                    for (int i = 0; i < m; i++) {
-                        if (fs[i] == 0) {
-                            idx = i;
+                    // Find the frame with the least recently used page
+                    for (int i = 0; i < numFrames; i++) {
+                        if (recent[i] == 0) {
+                            replaceIndex = i;
                             break;
                         }
                     }
                 }
 
-                fr[idx] = p[j]; // Replace page
-                pf++; // Increment page fault count
+                // Replace page in the chosen frame
+                frames[replaceIndex] = currentPage;
+                pageFaults++; // Count this as a page fault
             }
 
-            // Display the current page
-            System.out.print("Page: " + p[j] + " ");
-            display();
+            // Display the current page and frames
+            System.out.print("Page: " + currentPage + " ");
+            displayFrames();
         }
 
-        // Display number of page faults
-        System.out.println("\nNumber of page faults: " + pf);
+        // Display the number of page faults
+        System.out.println("\nNumber of page faults: " + pageFaults);
     }
 
     // Main method to execute the program
-    public static void main(String args[]) {
-        LRU lruAlgo = new LRU();
-        lruAlgo.read();
-        lruAlgo.lru();
+    public static void main(String[] args) {
+        LRU lruAlgorithm = new LRU();
+        lruAlgorithm.readInput();
+        lruAlgorithm.applyLRU();
     }
 }
